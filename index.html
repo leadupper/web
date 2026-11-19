@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="zh-HK" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>HTML Studio</title>
+  <style>
+    :root {
+      --bg-app: #0d1117;
+      --bg-surface: #161b22;
+      --bg-elevated: #1f2631;
+      --bg-hover: #293241;
+      --border: #30363d;
+      --text-main: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #6366f1;
+      --accent-2: #22d3ee;
+      --accent-glow: rgba(99, 102, 241, 0.28);
+      --danger: #f43f5e;
+      --success: #10b981;
+      --gutter-bg: #11161d;
+      --gutter-text: #545d68;
+      --selection: rgba(99, 102, 241, 0.32);
+      --shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+      --radius: 10px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: "SF Mono", Menlo, Monaco, "Cascadia Code", Consolas, "Liberation Mono", "Courier New", monospace;
+      --editor-size: 14px;
+      --editor-lh: 1.6;
+      /* Syntax Dark */
+      --tok-tag: #ff7b72;
+      --tok-attr: #79c0ff;
+      --tok-str: #a5d6ff;
+      --tok-comm: #6e7681;
+      --tok-kw: #d2a8ff;
+      --tok-fn: #dcdcaa;
+      --tok-num: #ffa657;
+      --tok-prop: #7ee787;
+      --tok-punc: #8b949e;
+      --tok-builtin: #56d4dd;
+    }
+
+    html[data-theme="light"] {
+      --bg-app: #f0f4f8;
+      --bg-surface: #ffffff;
+      --bg-elevated: #f6f8fa;
+      --bg-hover: #eaeef2;
+      --border: #d0d7de;
+      --text-main: #1f2328;
+      --text-muted: #656d76;
+      --accent: #4f46e5;
+      --accent-2: #0891b2;
+      --accent-glow: rgba(79, 70, 229, 0.18);
+      --gutter-bg: #f6f8fa;
+      --gutter-text: #8c959f;
+      --selection: rgba(79, 70, 229, 0.22);
+      --shadow: 0 12px 28px rgba(31, 35, 40, 0.12);
+      /* Syntax Light */
+      --tok-tag: #cf222e;
+      --tok-attr: #0550ae;
+      --tok-str: #0a3069;
+      --tok-comm: #6e7781;
+      --tok-kw: #8250df;
+      --tok-fn: #953800;
+      --tok-num: #bc4c00;
+      --tok-prop: #116329;
+      --tok-punc: #57606a;
+      --tok-builtin: #0550ae;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background: var(--bg-app);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      touch-action: manipulation;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+
+    /* Header Toolbar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      z-index: 30;
+      flex-wrap: wrap;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: -0.5px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px var(--accent-glow);
+      user-select: none;
+    }
+
+    .title-wrap {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .app-title {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .filename-input {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-family: var(--font-mono);
+      padding: 1px 4px;
+      margin-left: -4px;
+      border-radius: 4px;
+      width: 150px;
+      max-width: 36vw;
+      outline: none;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .filename-input:hover, .filename-input:focus {
+      border-color: var(--border);
+      background: var(--bg-elevated);
+      color: var(--text-main);
+    }
+
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 34px;
+      padding: 0 11px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s, background 0.15s, border-color 0.15s, box-shadow 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--text-muted);
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 3px 10px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #7477ff, var(--accent));
+      border-color: transparent;
+    }
+
+    .btn-accent {
+      background: rgba(34, 211, 238, 0.14);
+      border-color: rgba(34, 211, 238, 0.4);
+      color: var(--accent-2);
+    }
+
+    .btn-accent:hover {
+      background: rgba(34, 211, 238, 0.24);
+      border-color: var(--accent-2);
+    }
+
+    .btn-icon {
+      width: 34px;
+      padding: 0;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Segmented View Mode */
+    .segmented {
+      display: inline-flex;
+      background: var(--bg-app);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .seg-btn {
+      height: 28px;
+      padding: 0 10px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .seg-btn.active {
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Dropdown Menu */
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      min-width: 210px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 6px;
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 100;
+    }
+
+    .dropdown.open .dropdown-menu {
+      display: flex;
+      animation: popIn 0.14s ease-out;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 13px;
+      border-radius: 7px;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .menu-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .menu-item small {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    /* Main Workspace */
+    .workspace {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pane {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      flex: 1;
+      background: var(--bg-app);
+    }
+
+    .workspace[data-mode="code"] .preview-pane { display: none; }
+    .workspace[data-mode="preview"] .editor-pane { display: none; }
+    .workspace[data-mode="code"] .resizer,
+    .workspace[data-mode="preview"] .resizer { display: none; }
+
+    /* Resizer */
+    .resizer {
+      width: 6px;
+      background: var(--border);
+      cursor: col-resize;
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.15s;
+      z-index: 10;
+    }
+
+    .resizer:hover, .resizer.dragging {
+      background: var(--accent);
+    }
+
+    .resizer::after {
+      content: "";
+      position: absolute;
+      inset: 0 -5px;
+    }
+
+    /* Pane Sub-bars */
+    .subbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 6px 10px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .subbar::-webkit-scrollbar { display: none; }
+
+    .subbar-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .mini-btn {
+      height: 26px;
+      padding: 0 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .mini-btn:hover { background: var(--bg-hover); }
+    .mini-btn.active {
+      border-color: var(--accent);
+      color: var(--accent-2);
+      background: var(--accent-glow);
+    }
+
+    .sym-btn {
+      font-family: var(--font-mono);
+      min-width: 28px;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    /* Syntax Highlighting Editor */
+    .editor-container {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      position: relative;
+      background: var(--bg-app);
+      overflow: hidden;
+    }
+
+    .line-numbers {
+      width: 48px;
+      flex-shrink: 0;
+      background: var(--gutter-bg);
+      color: var(--gutter-text);
+      border-right: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: var(--editor-size);
+      line-height: var(--editor-lh);
+      padding: 14px 8px 40px 4px;
+      text-align: right;
+      user-select: none;
+      overflow: hidden;
+      white-space: pre;
+    }
+
+    .code-stage {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    #highlight-layer,
+    #code-editor {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 14px 16px;
+      border: 0;
+      outline: none;
+      font-family: var(--font-mono);
+      font-size: var(--editor-size);
+      line-height: var(--editor-lh);
+      tab-size: 2;
+      -moz-tab-size: 2;
+      white-space: pre;
+      letter-spacing: 0;
+      word-spacing: 0;
+      font-variant-ligatures: none;
+      box-sizing: border-box;
+    }
+
+    #highlight-layer {
+      z-index: 1;
+      overflow: hidden;
+      pointer-events: none;
+      color: var(--text-main);
+      padding-right: 40px;
+      padding-bottom: 40px;
+    }
+
+    #highlight-code {
+      display: block;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+    }
+
+    #code-editor {
+      z-index: 2;
+      background: transparent;
+      color: transparent;
+      caret-color: var(--accent-2);
+      resize: none;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      -webkit-text-fill-color: transparent;
+    }
+
+    #code-editor::selection {
+      background: var(--selection);
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Syntax Token Colors (Keep font-weight & style identical for pixel-perfect caret alignment) */
+    .tok-tag { color: var(--tok-tag); }
+    .tok-attr { color: var(--tok-attr); }
+    .tok-str { color: var(--tok-str); }
+    .tok-comm { color: var(--tok-comm); }
+    .tok-kw { color: var(--tok-kw); }
+    .tok-fn { color: var(--tok-fn); }
+    .tok-num { color: var(--tok-num); }
+    .tok-prop { color: var(--tok-prop); }
+    .tok-punc { color: var(--tok-punc); }
+    .tok-builtin { color: var(--tok-builtin); }
+
+    /* Status Bar */
+    .statusbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 12px;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 11.5px;
+      font-family: var(--font-mono);
+      flex-shrink: 0;
+    }
+
+    /* Preview Pane */
+    .preview-stage {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: repeating-conic-gradient(var(--bg-elevated) 0% 25%, var(--bg-app) 0% 50%) 50% / 20px 20px;
+      overflow: auto;
+      position: relative;
+    }
+
+    #preview-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #ffffff;
+      transition: width 0.25s ease, height 0.25s ease, border-radius 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .preview-stage.sim-mobile #preview-frame {
+      width: 375px;
+      max-width: 96%;
+      height: min(760px, 94%);
+      border-radius: 24px;
+      border: 8px solid #1f2631;
+      box-shadow: var(--shadow);
+    }
+
+    .preview-stage.sim-tablet #preview-frame {
+      width: 768px;
+      max-width: 96%;
+      height: min(920px, 94%);
+      border-radius: 18px;
+      border: 8px solid #1f2631;
+      box-shadow: var(--shadow);
+    }
+
+    /* Full-Page Zen Mode (Hide Toolbar) */
+    body.zen-mode .topbar,
+    body.zen-mode .editor-pane,
+    body.zen-mode .resizer,
+    body.zen-mode .preview-pane .subbar {
+      display: none !important;
+    }
+
+    body.zen-mode .preview-pane {
+      display: flex !important;
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      z-index: 8000;
+    }
+
+    body.zen-mode .preview-stage {
+      background: #fff;
+    }
+
+    body.zen-mode #preview-frame {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+    }
+
+    #zen-restore-btn {
+      display: none;
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top));
+      right: max(12px, env(safe-area-inset-right));
+      z-index: 9999;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: grab;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      transition: opacity 0.35s ease, transform 0.15s ease, background 0.2s ease;
+      touch-action: none;
+      user-select: none;
+    }
+
+    body.zen-mode #zen-restore-btn {
+      display: inline-flex;
+    }
+
+    #zen-restore-btn.idle {
+      opacity: 0.38;
+    }
+
+    #zen-restore-btn:hover,
+    #zen-restore-btn:active {
+      opacity: 1 !important;
+      background: rgba(99, 102, 241, 0.94);
+    }
+
+    /* Drag & Drop Overlay */
+    #drop-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9500;
+      background: rgba(13, 17, 23, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    #drop-overlay.active {
+      display: flex;
+    }
+
+    .drop-card {
+      border: 2px dashed var(--accent-2);
+      border-radius: 20px;
+      padding: 44px 36px;
+      text-align: center;
+      background: rgba(22, 27, 34, 0.9);
+      color: #fff;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .drop-card h2 {
+      margin: 12px 0 6px;
+      font-size: 20px;
+    }
+
+    .drop-card p {
+      margin: 0;
+      color: #8b949e;
+      font-size: 14px;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: max(20px, env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(15, 23, 42, 0.92);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 9999;
+      white-space: nowrap;
+      max-width: 90vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Responsive Mobile & Tablet Tweaks */
+    @media (max-width: 767px) {
+      :root {
+        --editor-size: 16px; /* Prevent iOS Safari auto-zoom on textarea focus */
+      }
+      .topbar {
+        padding: 8px 10px;
+      }
+      .app-title {
+        display: none;
+      }
+      .btn-label {
+        display: none;
+      }
+      .btn {
+        height: 38px;
+        min-width: 38px;
+        padding: 0 10px;
+      }
+      .seg-btn {
+        height: 32px;
+        padding: 0 12px;
+      }
+      #btn-split,
+      .desktop-only {
+        display: none !important;
+      }
+      .line-numbers {
+        width: 38px;
+        padding-left: 2px;
+        padding-right: 6px;
+      }
+      .mini-btn {
+        height: 32px;
+        padding: 0 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Top Toolbar -->
+    <header class="topbar">
+      <div class="brand-group">
+        <div class="logo" title="HTML studio">&lt;/&gt;</div>
+        <div class="title-wrap">
+          <span class="app-title">HTML studio</span>
+          <input id="filename-input" class="filename-input" type="text" value="galaxy-demo.html" spellcheck="false" title="點擊更改檔案名稱">
+        </div>
+      </div>
+
+      <!-- View Switcher -->
+      <div class="segmented" role="tablist" aria-label="檢視模式">
+        <button id="btn-code" class="seg-btn" data-mode="code" title="代碼編輯器">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          代碼
+        </button>
+        <button id="btn-split" class="seg-btn active" data-mode="split" title="雙欄並排">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+          雙欄
+        </button>
+        <button id="btn-preview" class="seg-btn" data-mode="preview" title="網頁預覽">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          預覽
+        </button>
+      </div>
+
+      <!-- Actions -->
+      <div class="toolbar-actions">
+        <input id="file-input" type="file" accept=".html,.htm,text/html,.txt,.svg" hidden>
+
+        <button id="btn-open" class="btn btn-primary" title="開啟本機 .html 檔案">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span class="btn-label">開啟</span>
+        </button>
+
+        <div class="dropdown" id="tpl-dropdown">
+          <button id="btn-tpl" class="btn" title="內建趣味範本">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span class="btn-label">範本</span>
+          </button>
+          <div class="dropdown-menu">
+            <button class="menu-item" data-tpl="galaxy">
+              <span>🌌 互動粒子星空</span><small>Canvas</small>
+            </button>
+            <button class="menu-item" data-tpl="clock">
+              <span>⏱️ 霓虹數碼時鐘</span><small>互動小工具</small>
+            </button>
+            <button class="menu-item" data-tpl="blank">
+              <span>📄 空白 HTML5 模板</span><small>全新開始</small>
+            </button>
+          </div>
+        </div>
+
+        <button id="btn-save" class="btn" title="儲存為 .html 檔案 (Ctrl/Cmd + S)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span class="btn-label">匯出</span>
+        </button>
+
+        <button id="btn-zen" class="btn btn-accent" title="隱藏工具列，整頁顯示網頁">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          <span class="btn-label">全頁顯示</span>
+        </button>
+
+        <button id="btn-theme" class="btn btn-icon" title="切換深色／淺色主題">
+          <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="workspace" id="workspace" data-mode="split">
+      <!-- Editor Pane -->
+      <section class="pane editor-pane" id="editor-pane">
+        <div class="subbar">
+          <div class="subbar-group">
+            <button class="mini-btn sym-btn" data-insert="  " title="插入 Tab (2 空格)">Tab</button>
+            <button class="mini-btn sym-btn" data-insert="<">&lt;</button>
+            <button class="mini-btn sym-btn" data-insert=">">&gt;</button>
+            <button class="mini-btn sym-btn" data-insert="/">/</button>
+            <button class="mini-btn sym-btn" data-insert='"' title="雙引號">"</button>
+            <button class="mini-btn sym-btn" data-insert="=">=</button>
+            <button class="mini-btn sym-btn" data-insert="{">{</button>
+            <button class="mini-btn sym-btn" data-insert="}">}</button>
+          </div>
+          <div class="subbar-group">
+            <button id="btn-paste" class="mini-btn" title="從剪貼簿貼上">📋 貼上</button>
+            <button id="btn-copy" class="mini-btn" title="複製全部代碼">📄 複製</button>
+            <button id="btn-font-down" class="mini-btn" title="縮小字體">A-</button>
+            <button id="btn-font-up" class="mini-btn" title="放大字體">A+</button>
+          </div>
+        </div>
+
+        <div class="editor-container">
+          <div id="line-numbers" class="line-numbers" aria-hidden="true">1</div>
+          <div class="code-stage">
+            <pre id="highlight-layer" aria-hidden="true"><code id="highlight-code"></code></pre>
+            <textarea
+              id="code-editor"
+              spellcheck="false"
+              autocapitalize="off"
+              autocomplete="off"
+              autocorrect="off"
+              wrap="off"
+              aria-label="HTML 代碼編輯器"
+              placeholder="在此輸入或貼上 HTML 代碼，亦可直接拖放 .html 檔案至此..."
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="statusbar">
+          <span id="status-cursor">Ln 1, Col 1</span>
+          <span id="status-stats">0 行 · 0 字元</span>
+        </div>
+      </section>
+
+      <!-- Resizer -->
+      <div class="resizer" id="resizer" title="左右拖拉調整比例"></div>
+
+      <!-- Preview Pane -->
+      <section class="pane preview-pane" id="preview-pane">
+        <div class="subbar">
+          <div class="subbar-group">
+            <button id="btn-run" class="mini-btn" title="重新執行預覽 (Ctrl/Cmd + Enter)">↻ 重整</button>
+            <button id="btn-autorun" class="mini-btn active" title="輸入時自動即時預覽">⚡ 即時預覽</button>
+          </div>
+          <div class="subbar-group">
+            <button class="mini-btn desktop-only active" data-sim="full" title="100% 滿版">🖥️ 滿版</button>
+            <button class="mini-btn desktop-only" data-sim="mobile" title="模擬手機 (375px)">📱 手機</button>
+            <button class="mini-btn desktop-only" data-sim="tablet" title="模擬平板 (768px)">📟 平板</button>
+            <button id="btn-zen-2" class="mini-btn" title="隱藏所有工具列">⛶ 隱藏工具列</button>
+          </div>
+        </div>
+
+        <div class="preview-stage" id="preview-stage">
+          <iframe
+            id="preview-frame"
+            title="HTML 預覽視窗"
+            sandbox="allow-scripts allow-forms allow-modals allow-popups allow-same-origin"
+          ></iframe>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Floating Restore Button in Full-Page Mode -->
+  <button id="zen-restore-btn" title="點擊返回工具列（可按住拖曳位置）">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="15" height="15"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+    顯示工具列
+  </button>
+
+  <!-- Drag & Drop Overlay -->
+  <div id="drop-overlay">
+    <div class="drop-card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.8" width="52" height="52"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+      <h2>放開即可載入檔案</h2>
+      <p>支援 .html / .htm / .txt 離線檔案</p>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ==========================================
+      // 1. 內建趣味範本 (無任何外部依賴)
+      // ==========================================
+      const TEMPLATES = {
+        galaxy: {
+          name: 'galaxy-demo.html',
+          code: `<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>互動粒子星空</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      height: 100vh;
+      overflow: hidden;
+      background: radial-gradient(circle at top, #1b2240 0%, #090c18 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang HK", sans-serif;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      user-select: none;
+    }
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .card {
+      position: relative;
+      z-index: 2;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 22px;
+      padding: 28px 32px;
+      text-align: center;
+      max-width: 340px;
+      width: 88%;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #60a5fa, #c084fc, #f472b6);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+    p {
+      font-size: 14px;
+      color: #cbd5e1;
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+    button {
+      border: none;
+      padding: 11px 22px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #6366f1, #ec4899);
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(236, 72, 153, 0.35);
+      transition: transform 0.12s;
+    }
+    button:active { transform: scale(0.95); }
+  </style>
+</head>
+<body>
+  <canvas id="sky"></canvas>
+  <div class="card">
+    <h1>✨ 離線 HTML5 成功運行！</h1>
+    <p>試試喺畫面滑動手指或移動滑鼠，亦可以點擊右上角「全頁顯示」隱藏工具列體驗！</p>
+    <button id="burst">🎆 放煙花粒子</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('sky');
+    const ctx = canvas.getContext('2d');
+    let w, h, particles = [];
+    const pointer = { x: -999, y: -999 };
+
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+      constructor(x, y, burst) {
+        this.x = x ?? Math.random() * w;
+        this.y = y ?? Math.random() * h;
+        const speed = burst ? (Math.random() * 5 + 1.5) : (Math.random() * 0.7 + 0.2);
+        const angle = Math.random() * Math.PI * 2;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.r = burst ? Math.random() * 3 + 1.5 : Math.random() * 2 + 1;
+        this.hue = Math.random() * 140 + 180;
+        this.life = burst ? 90 : Infinity;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.life !== Infinity) {
+          this.vx *= 0.98;
+          this.vy *= 0.98;
+          this.life--;
+        } else {
+          if (this.x < 0 || this.x > w) this.vx *= -1;
+          if (this.y < 0 || this.y > h) this.vy *= -1;
+        }
+        const dx = pointer.x - this.x;
+        const dy = pointer.y - this.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 110 && dist > 1) {
+          this.x -= dx * 0.018;
+          this.y -= dy * 0.018;
+        }
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = \`hsla(\${this.hue}, 90%, 72%, \${this.life < 30 ? this.life / 30 : 0.85})\`;
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < 75; i++) particles.push(new Particle());
+
+    window.addEventListener('pointermove', e => {
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+    });
+
+    document.getElementById('burst').addEventListener('click', (e) => {
+      const rect = e.target.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      for (let i = 0; i < 40; i++) particles.push(new Particle(cx, cy, true));
+    });
+
+    function loop() {
+      ctx.fillStyle = 'rgba(9, 12, 24, 0.25)';
+      ctx.fillRect(0, 0, w, h);
+      particles = particles.filter(p => p.life > 0);
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.update();
+        p.draw();
+        for (let j = i + 1; j < particles.length; j++) {
+          const q = particles[j];
+          const d = Math.hypot(p.x - q.x, p.y - q.y);
+          if (d < 95) {
+            ctx.strokeStyle = \`rgba(148, 163, 184, \${(1 - d / 95) * 0.22})\`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(q.x, q.y);
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(loop);
+    }
+    loop();
+  <\/script>
+</body>
+</html>`
+        },
+        clock: {
+          name: 'neon-clock.html',
+          code: `<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>霓虹數碼時鐘</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #070b14;
+      font-family: "SF Mono", Menlo, monospace;
+      color: #e2e8f0;
+    }
+    .panel {
+      text-align: center;
+      padding: 36px 40px;
+      border-radius: 24px;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      box-shadow: 0 0 40px rgba(34, 211, 238, 0.15);
+    }
+    .time {
+      font-size: clamp(38px, 10vw, 68px);
+      font-weight: 800;
+      letter-spacing: 3px;
+      color: #22d3ee;
+      text-shadow: 0 0 22px rgba(34, 211, 238, 0.6);
+    }
+    .date {
+      margin-top: 10px;
+      color: #94a3b8;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <div class="time" id="t">00:00:00</div>
+    <div class="date" id="d">載入中...</div>
+  </div>
+  <script>
+    function tick() {
+      const now = new Date();
+      document.getElementById('t').textContent = now.toLocaleTimeString('en-GB');
+      document.getElementById('d').textContent = now.toLocaleDateString('zh-HK', {
+        year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+      });
+    }
+    tick();
+    setInterval(tick, 1000);
+  <\/script>
+</body>
+</html>`
+        },
+        blank: {
+          name: 'index.html',
+          code: `<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的離線網頁</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      max-width: 720px;
+      margin: 48px auto;
+      padding: 0 20px;
+      line-height: 1.7;
+      color: #1e293b;
+    }
+  </style>
+</head>
+<body>
+  <h1>你好，世界！</h1>
+  <p>喺左側編輯 HTML5、CSS3 或 JavaScript，右側會即時顯示結果。</p>
+</body>
+</html>`
+        }
+      };
+
+      // ==========================================
+      // 2. DOM 元素與狀態
+      // ==========================================
+      const els = {
+        workspace: document.getElementById('workspace'),
+        editorPane: document.getElementById('editor-pane'),
+        resizer: document.getElementById('resizer'),
+        editor: document.getElementById('code-editor'),
+        highlightLayer: document.getElementById('highlight-layer'),
+        highlightCode: document.getElementById('highlight-code'),
+        lineNumbers: document.getElementById('line-numbers'),
+        previewStage: document.getElementById('preview-stage'),
+        previewFrame: document.getElementById('preview-frame'),
+        filenameInput: document.getElementById('filename-input'),
+        fileInput: document.getElementById('file-input'),
+        btnOpen: document.getElementById('btn-open'),
+        btnSave: document.getElementById('btn-save'),
+        btnZen: document.getElementById('btn-zen'),
+        btnZen2: document.getElementById('btn-zen-2'),
+        zenRestoreBtn: document.getElementById('zen-restore-btn'),
+        btnTheme: document.getElementById('btn-theme'),
+        btnRun: document.getElementById('btn-run'),
+        btnAutoRun: document.getElementById('btn-autorun'),
+        btnCopy: document.getElementById('btn-copy'),
+        btnPaste: document.getElementById('btn-paste'),
+        btnFontDown: document.getElementById('btn-font-down'),
+        btnFontUp: document.getElementById('btn-font-up'),
+        tplDropdown: document.getElementById('tpl-dropdown'),
+        btnTpl: document.getElementById('btn-tpl'),
+        dropOverlay: document.getElementById('drop-overlay'),
+        toast: document.getElementById('toast'),
+        statusCursor: document.getElementById('status-cursor'),
+        statusStats: document.getElementById('status-stats')
+      };
+
+      let autoRun = true;
+      let runTimer = null;
+      let toastTimer = null;
+      let zenIdleTimer = null;
+      let editorFontSize = window.innerWidth < 768 ? 16 : 14;
+
+      function storageGet(key, fallback) {
+        try {
+          const val = localStorage.getItem(key);
+          return val !== null ? val : fallback;
+        } catch (e) {
+          return fallback;
+        }
+      }
+
+      function storageSet(key, val) {
+        try {
+          localStorage.setItem(key, val);
+        } catch (e) {}
+      }
+
+      function showToast(msg) {
+        els.toast.textContent = msg;
+        els.toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => els.toast.classList.remove('show'), 2600);
+      }
+
+      // ==========================================
+      // 3. 純 JS 單遍掃描 Syntax Highlighter
+      // ==========================================
+      function escHtml(str) {
+        return str
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      }
+
+      function span(cls, text) {
+        return '<span class="' + cls + '">' + escHtml(text) + '</span>';
+      }
+
+      function highlightCSS(css) {
+        const re = /(\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(@[a-zA-Z-]+)|(#[0-9a-fA-F]{3,8}\b)|(-?\d+(?:\.\d+)?(?:px|rem|em|vh|vw|dvh|%|deg|s|ms|fr)?\b)|([a-zA-Z-]+(?=\s*:))|([{}();:,])/g;
+        let out = '';
+        let last = 0;
+        let m;
+        while ((m = re.exec(css)) !== null) {
+          if (m.index > last) out += escHtml(css.slice(last, m.index));
+          if (m[1]) out += span('tok-comm', m[1]);
+          else if (m[2]) out += span('tok-str', m[2]);
+          else if (m[3]) out += span('tok-kw', m[3]);
+          else if (m[4] || m[5]) out += span('tok-num', m[4] || m[5]);
+          else if (m[6]) out += span('tok-prop', m[6]);
+          else if (m[7]) out += span('tok-punc', m[7]);
+          last = re.lastIndex;
+        }
+        if (last < css.length) out += escHtml(css.slice(last));
+        return out;
+      }
+
+      function highlightJS(js) {
+        const re = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|(`(?:\\[\s\S]|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|\b(const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|new|this|class|extends|super|import|export|default|from|async|await|try|catch|finally|throw|typeof|instanceof|in|of|true|false|null|undefined|void|delete)\b|\b(document|window|console|Math|Array|Object|String|Number|JSON|Promise|Date|Set|Map|localStorage|fetch|requestAnimationFrame|setTimeout|setInterval|alert)\b|\b(0x[0-9a-fA-F]+|\d+(?:\.\d+)?(?:e[+-]?\d+)?)\b|\b([a-zA-Z_$][\w$]*)(?=\s*\()|([{}()[\].,:;+\-*/%=!<>&|?]+)/g;
+        let out = '';
+        let last = 0;
+        let m;
+        while ((m = re.exec(js)) !== null) {
+          if (m.index > last) out += escHtml(js.slice(last, m.index));
+          if (m[1]) out += span('tok-comm', m[1]);
+          else if (m[2]) out += span('tok-str', m[2]);
+          else if (m[3]) out += span('tok-kw', m[3]);
+          else if (m[4]) out += span('tok-builtin', m[4]);
+          else if (m[5]) out += span('tok-num', m[5]);
+          else if (m[6]) out += span('tok-fn', m[6]);
+          else if (m[7]) out += span('tok-punc', m[7]);
+          last = re.lastIndex;
+        }
+        if (last < js.length) out += escHtml(js.slice(last));
+        return out;
+      }
+
+      function highlightTag(tagStr) {
+        const re = /^(<\/?)([a-zA-Z0-9:-]+)|(\s+[a-zA-Z0-9_:@.-]+)(?=\s*=|\s|>|\/>|$)|(=)|("(?:[^"]*)"|'(?:[^']*)')|(\/?>)$/g;
+        let out = '';
+        let last = 0;
+        let m;
+        while ((m = re.exec(tagStr)) !== null) {
+          if (m.index > last) out += escHtml(tagStr.slice(last, m.index));
+          if (m[1]) {
+            out += span('tok-punc', m[1]) + span('tok-tag', m[2]);
+          } else if (m[3]) {
+            out += span('tok-attr', m[3]);
+          } else if (m[4]) {
+            out += span('tok-punc', m[4]);
+          } else if (m[5]) {
+            out += span('tok-str', m[5]);
+          } else if (m[6]) {
+            out += span('tok-punc', m[6]);
+          }
+          last = re.lastIndex;
+        }
+        if (last < tagStr.length) out += escHtml(tagStr.slice(last));
+        return out;
+      }
+
+      function highlightHTML(code) {
+        const re = /(<!--[\s\S]*?(?:-->|$))|(<!DOCTYPE[^>]*>)|(<style\b(?:"[^"]*"|'[^']*'|[^>"'])*>)([\s\S]*?)(<\/style>)|(<script\b(?:"[^"]*"|'[^']*'|[^>"'])*>)([\s\S]*?)(<\/script>)|(<\/?[a-zA-Z][a-zA-Z0-9:-]*(?:"[^"]*"|'[^']*'|[^>"'])*\/?>)|(&(?:#\d+|#x[\da-fA-F]+|[a-zA-Z]+);)/gi;
+        let out = '';
+        let last = 0;
+        let m;
+        while ((m = re.exec(code)) !== null) {
+          if (m.index > last) out += escHtml(code.slice(last, m.index));
+          if (m[1]) {
+            out += span('tok-comm', m[1]);
+          } else if (m[2]) {
+            out += span('tok-kw', m[2]);
+          } else if (m[3] !== undefined) {
+            out += highlightTag(m[3]) + highlightCSS(m[4]) + highlightTag(m[5]);
+          } else if (m[6] !== undefined) {
+            out += highlightTag(m[6]) + highlightJS(m[7]) + highlightTag(m[8]);
+          } else if (m[9]) {
+            out += highlightTag(m[9]);
+          } else if (m[10]) {
+            out += span('tok-num', m[10]);
+          }
+          last = re.lastIndex;
+        }
+        if (last < code.length) out += escHtml(code.slice(last));
+        // 若結尾為換行，補上空格令 pre 與 textarea 捲動高度一致
+        if (code.endsWith('\n') || code === '') out += ' ';
+        return out;
+      }
+
+      // ==========================================
+      // 4. 編輯器更新、行號、游標狀態與預覽
+      // ==========================================
+      function updateEditorUI() {
+        const val = els.editor.value;
+        els.highlightCode.innerHTML = highlightHTML(val);
+
+        const lineCount = val === '' ? 1 : val.split('\n').length;
+        let nums = '';
+        for (let i = 1; i <= lineCount; i++) {
+          nums += (i === 1 ? '' : '\n') + i;
+        }
+        els.lineNumbers.textContent = nums;
+        els.statusStats.textContent = `${lineCount} 行 · ${val.length} 字元`;
+        updateCursorStatus();
+      }
+
+      function updateCursorStatus() {
+        const pos = els.editor.selectionStart || 0;
+        const before = els.editor.value.slice(0, pos);
+        const lines = before.split('\n');
+        const ln = lines.length;
+        const col = lines[lines.length - 1].length + 1;
+        els.statusCursor.textContent = `Ln ${ln}, Col ${col}`;
+      }
+
+      function syncScroll() {
+        els.highlightLayer.scrollTop = els.editor.scrollTop;
+        els.highlightLayer.scrollLeft = els.editor.scrollLeft;
+        els.lineNumbers.scrollTop = els.editor.scrollTop;
+      }
+
+      function runPreview() {
+        els.previewFrame.srcdoc = els.editor.value;
+      }
+
+      function scheduleRun() {
+        storageSet('offline_html_draft', els.editor.value);
+        if (!autoRun) return;
+        clearTimeout(runTimer);
+        runTimer = setTimeout(runPreview, 240);
+      }
+
+      function insertAtCursor(text) {
+        const ta = els.editor;
+        const start = ta.selectionStart;
+        const end = ta.selectionEnd;
+        const val = ta.value;
+        ta.value = val.slice(0, start) + text + val.slice(end);
+        ta.selectionStart = ta.selectionEnd = start + text.length;
+        ta.focus();
+        updateEditorUI();
+        scheduleRun();
+      }
+
+      // ==========================================
+      // 5. 事件綁定
+      // ==========================================
+      els.editor.addEventListener('input', () => {
+        updateEditorUI();
+        scheduleRun();
+      });
+
+      els.editor.addEventListener('scroll', syncScroll, { passive: true });
+      els.editor.addEventListener('click', updateCursorStatus);
+      els.editor.addEventListener('keyup', updateCursorStatus);
+
+      els.editor.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          insertAtCursor('  ');
+        } else if (e.key === 'Enter') {
+          const pos = els.editor.selectionStart;
+          const val = els.editor.value;
+          const lineStart = val.lastIndexOf('\n', pos - 1) + 1;
+          const currentLine = val.slice(lineStart, pos);
+          const indentMatch = currentLine.match(/^[ \t]*/);
+          if (indentMatch && indentMatch[0].length > 0) {
+            e.preventDefault();
+            insertAtCursor('\n' + indentMatch[0]);
+          }
+        }
+      });
+
+      // 快速符號列
+      document.querySelectorAll('.sym-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          insertAtCursor(btn.dataset.insert);
+        });
+      });
+
+      // 字體大小調整
+      function applyFontSize(size) {
+        editorFontSize = Math.max(11, Math.min(24, size));
+        document.documentElement.style.setProperty('--editor-size', editorFontSize + 'px');
+        updateEditorUI();
+        syncScroll();
+      }
+      applyFontSize(editorFontSize);
+
+      els.btnFontDown.addEventListener('click', () => applyFontSize(editorFontSize - 1));
+      els.btnFontUp.addEventListener('click', () => applyFontSize(editorFontSize + 1));
+
+      // 檢視模式切換
+      function setViewMode(mode) {
+        if (window.innerWidth < 768 && mode === 'split') {
+          mode = 'preview';
+        }
+        els.workspace.dataset.mode = mode;
+        document.querySelectorAll('.seg-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.mode === mode);
+        });
+        if (mode === 'code' || mode === 'split') {
+          setTimeout(syncScroll, 20);
+        }
+      }
+
+      document.querySelectorAll('.seg-btn').forEach(btn => {
+        btn.addEventListener('click', () => setViewMode(btn.dataset.mode));
+      });
+
+      // 裝置模擬切換 (Desktop)
+      document.querySelectorAll('[data-sim]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('[data-sim]').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          els.previewStage.classList.remove('sim-mobile', 'sim-tablet');
+          if (btn.dataset.sim === 'mobile') els.previewStage.classList.add('sim-mobile');
+          if (btn.dataset.sim === 'tablet') els.previewStage.classList.add('sim-tablet');
+        });
+      });
+
+      // 雙欄拖拉調整
+      let isResizing = false;
+      els.resizer.addEventListener('pointerdown', (e) => {
+        isResizing = true;
+        els.resizer.classList.add('dragging');
+        els.resizer.setPointerCapture(e.pointerId);
+        els.previewFrame.style.pointerEvents = 'none';
+      });
+      window.addEventListener('pointermove', (e) => {
+        if (!isResizing) return;
+        const rect = els.workspace.getBoundingClientRect();
+        const pct = ((e.clientX - rect.left) / rect.width) * 100;
+        const clamped = Math.max(20, Math.min(80, pct));
+        els.editorPane.style.flex = `0 0 ${clamped}%`;
+      });
+      window.addEventListener('pointerup', () => {
+        if (!isResizing) return;
+        isResizing = false;
+        els.resizer.classList.remove('dragging');
+        els.previewFrame.style.pointerEvents = '';
+      });
+
+      // 開啟本機 .html 檔案
+      function loadFileObject(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          els.editor.value = ev.target.result;
+          els.filenameInput.value = file.name || 'untitled.html';
+          storageSet('offline_html_filename', els.filenameInput.value);
+          updateEditorUI();
+          runPreview();
+          storageSet('offline_html_draft', els.editor.value);
+          if (window.innerWidth < 768) {
+            setViewMode('preview');
+          }
+          showToast('已載入：' + file.name);
+        };
+        reader.readAsText(file, 'UTF-8');
+      }
+
+      els.btnOpen.addEventListener('click', () => els.fileInput.click());
+      els.fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          loadFileObject(e.target.files[0]);
+          e.target.value = '';
+        }
+      });
+
+      // 全域拖放載入
+      let dragDepth = 0;
+      window.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        dragDepth++;
+        els.dropOverlay.classList.add('active');
+      });
+      window.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dragDepth = Math.max(0, dragDepth - 1);
+        if (dragDepth === 0) els.dropOverlay.classList.remove('active');
+      });
+      window.addEventListener('dragover', (e) => e.preventDefault());
+      window.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dragDepth = 0;
+        els.dropOverlay.classList.remove('active');
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+          loadFileObject(e.dataTransfer.files[0]);
+        }
+      });
+
+      // 下載匯出 .html
+      function saveHtmlFile() {
+        let name = (els.filenameInput.value || 'webpage.html').trim();
+        if (!/\.(html?|txt)$/i.test(name)) name += '.html';
+        const blob = new Blob([els.editor.value], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('已匯出：' + name);
+      }
+
+      els.btnSave.addEventListener('click', saveHtmlFile);
+      els.filenameInput.addEventListener('change', () => {
+        storageSet('offline_html_filename', els.filenameInput.value);
+      });
+
+      // 複製與貼上
+      els.btnCopy.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(els.editor.value);
+          showToast('已複製全部代碼');
+        } catch (err) {
+          els.editor.select();
+          document.execCommand('copy');
+          showToast('已複製全部代碼');
+        }
+      });
+
+      els.btnPaste.addEventListener('click', async () => {
+        try {
+          const txt = await navigator.clipboard.readText();
+          if (txt) {
+            els.editor.value = txt;
+            updateEditorUI();
+            runPreview();
+            storageSet('offline_html_draft', txt);
+            showToast('已從剪貼簿貼上');
+          }
+        } catch (err) {
+          showToast('請長按編輯區選擇「貼上」');
+          els.editor.focus();
+        }
+      });
+
+      // 預覽控制
+      els.btnRun.addEventListener('click', () => {
+        runPreview();
+        showToast('已重新載入預覽');
+      });
+
+      els.btnAutoRun.addEventListener('click', () => {
+        autoRun = !autoRun;
+        els.btnAutoRun.classList.toggle('active', autoRun);
+        if (autoRun) runPreview();
+        showToast(autoRun ? '已開啟即時預覽' : '已切換為手動重整');
+      });
+
+      // 範本選單
+      els.btnTpl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        els.tplDropdown.classList.toggle('open');
+      });
+      document.addEventListener('click', () => els.tplDropdown.classList.remove('open'));
+      document.querySelectorAll('[data-tpl]').forEach(item => {
+        item.addEventListener('click', () => {
+          const tpl = TEMPLATES[item.dataset.tpl];
+          if (!tpl) return;
+          els.editor.value = tpl.code;
+          els.filenameInput.value = tpl.name;
+          storageSet('offline_html_filename', tpl.name);
+          storageSet('offline_html_draft', tpl.code);
+          updateEditorUI();
+          runPreview();
+          showToast('已切換範本：' + tpl.name);
+        });
+      });
+
+      // 深色／淺色主題
+      function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        storageSet('offline_html_theme', theme);
+      }
+      applyTheme(storageGet('offline_html_theme', 'dark'));
+
+      els.btnTheme.addEventListener('click', () => {
+        const cur = document.documentElement.getAttribute('data-theme');
+        applyTheme(cur === 'dark' ? 'light' : 'dark');
+      });
+
+      // ==========================================
+      // 6. 隱藏工具列整頁顯示 (Zen Mode) + 可拖曳返回鈕
+      // ==========================================
+      function resetZenIdleTimer() {
+        els.zenRestoreBtn.classList.remove('idle');
+        clearTimeout(zenIdleTimer);
+        if (document.body.classList.contains('zen-mode')) {
+          zenIdleTimer = setTimeout(() => {
+            els.zenRestoreBtn.classList.add('idle');
+          }, 2800);
+        }
+      }
+
+      function enterZenMode() {
+        runPreview();
+        document.body.classList.add('zen-mode');
+        resetZenIdleTimer();
+        showToast('已隱藏工具列！點擊右上角按鈕或按 Esc 返回');
+      }
+
+      function exitZenMode() {
+        document.body.classList.remove('zen-mode');
+        clearTimeout(zenIdleTimer);
+        els.zenRestoreBtn.classList.remove('idle');
+      }
+
+      els.btnZen.addEventListener('click', enterZenMode);
+      els.btnZen2.addEventListener('click', enterZenMode);
+
+      // 允許拖曳浮動「顯示工具列」按鈕，避免遮擋網頁角落按鈕
+      let dragBtnState = null;
+      els.zenRestoreBtn.addEventListener('pointerdown', (e) => {
+        resetZenIdleTimer();
+        const rect = els.zenRestoreBtn.getBoundingClientRect();
+        dragBtnState = {
+          startX: e.clientX,
+          startY: e.clientY,
+          origLeft: rect.left,
+          origTop: rect.top,
+          moved: false
+        };
+        els.zenRestoreBtn.setPointerCapture(e.pointerId);
+      });
+
+      els.zenRestoreBtn.addEventListener('pointermove', (e) => {
+        if (!dragBtnState) return;
+        const dx = e.clientX - dragBtnState.startX;
+        const dy = e.clientY - dragBtnState.startY;
+        if (Math.hypot(dx, dy) > 6) {
+          dragBtnState.moved = true;
+          const x = Math.max(8, Math.min(window.innerWidth - els.zenRestoreBtn.offsetWidth - 8, dragBtnState.origLeft + dx));
+          const y = Math.max(8, Math.min(window.innerHeight - els.zenRestoreBtn.offsetHeight - 8, dragBtnState.origTop + dy));
+          els.zenRestoreBtn.style.left = x + 'px';
+          els.zenRestoreBtn.style.top = y + 'px';
+          els.zenRestoreBtn.style.right = 'auto';
+        }
+      });
+
+      els.zenRestoreBtn.addEventListener('pointerup', () => {
+        if (!dragBtnState) return;
+        const wasMoved = dragBtnState.moved;
+        dragBtnState = null;
+        if (!wasMoved) exitZenMode();
+      });
+
+      // 鍵盤快捷鍵
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.body.classList.contains('zen-mode')) {
+          exitZenMode();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+          e.preventDefault();
+          saveHtmlFile();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          runPreview();
+          showToast('已重新執行預覽');
+        }
+      });
+
+      // ==========================================
+      // 7. 初始化
+      // ==========================================
+      const savedDraft = storageGet('offline_html_draft', null);
+      const savedName = storageGet('offline_html_filename', null);
+      els.editor.value = savedDraft !== null ? savedDraft : TEMPLATES.galaxy.code;
+      els.filenameInput.value = savedName !== null ? savedName : TEMPLATES.galaxy.name;
+
+      // 行動裝置預設以預覽起步（方便直接睇效果，隨時切去「代碼」）
+      setViewMode(window.innerWidth < 768 ? 'preview' : 'split');
+      updateEditorUI();
+      runPreview();
+    })();
+  </script>
+</body>
+</html>
